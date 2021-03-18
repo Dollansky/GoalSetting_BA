@@ -1,0 +1,20 @@
+{
+  "name": "goal_setting_extension",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@types/chrome": "^0.0.133",
+    "types": "^0.1.1"
+  },
+  "devDependencies": {
+    "typescript": "^4.2.3"
+  }
+}
