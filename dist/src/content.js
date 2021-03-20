@@ -1,6 +1,4 @@
-
-chrome.runtime.onMessage.addListener((request, sender, resp) => {
-
+chrome.runtime.onMessage.addListener(function (request, sender, resp) {
     // const goalIntervention: HTMLElement = document.createElement('goalIntervention');
     // goalIntervention.id = 'goalIntervention';
     // goalIntervention.textContent =
@@ -9,4 +7,4 @@ chrome.runtime.onMessage.addListener((request, sender, resp) => {
     banner.className = "b";
     banner.innerHTML = "Banner Content";
     document.body.insertAdjacentHTML("afterbegin", "<div class='b'>Banner Content</div>");
-})
+});
