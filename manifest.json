@@ -6,14 +6,15 @@
   "permissions": [
     "tabs",
     "storage",
-    "bookmarks"
+    "bookmarks",
+    "idle"
   ],
   "background": {
     "scripts": ["background.js",
     "src/onInstallationSetup.js"]
   },
   "content_scripts": [{
-    "js": ["./src/content.js"],
+    "js": ["src/contentHandler.js"],
     "matches": ["*://*/*"]
   }],
   "browser_action": {

@@ -1,51 +1,64 @@
-
-// TODO Check what needs to be asynchronus
-
-// TODO NEXT UP: Date Format richtig machen. Export Classen zum laufen bringen
 // Reacts when an chrome tab is updated.
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-    try {
-        const url: URL = new URL(tab.url);
-        const domain: string = url.hostname;
-        // Check if website finished loading
-        if (changeInfo.status == 'complete') {
-            chrome.storage.local.get(['lastDomain'], (result) => {
-                // Check if new domain is called
-                if (result.lastDomain !== domain) {
-                    // Check if new domain is on blacklist
-                    chrome.storage.local.get(['blacklist'], (result) => {
-                        if (result.blacklist.includes(domain)) {
-                            window.console.log(domain);
-                            chrome.tabs.sendMessage(tabId, {domain: domain});
-                        }
-                        chrome.storage.local.set({lastDomain: domain});
-                    })
-                }
-            })
-        }
-    } catch (e) {
-        console.log(e);
+    if (changeInfo.status == 'complete') {
+        checkDomain(tab.url, tabId);
     }
+
 })
 
 // Reacts when the user switches between tabs
 chrome.tabs.onActivated.addListener(function (activeInfo) {
     chrome.tabs.get(activeInfo.tabId, function (tabs) {
-        try {
-            const url: URL = new URL(tabs.url);
-            const domain: string = url.hostname;
-            chrome.storage.local.get(['blacklist'], (result) => {
-                if (result.blacklist.includes(domain)) {
-                    chrome.tabs.sendMessage(activeInfo.tabId, {domain: domain});
-                }
-                chrome.storage.local.set({lastDomain: domain});
-            })
-        } catch (e) {
-            // Error gets thrown when opening new tab maybe just catch it with if phrase
-            // Maybe send other catched errors
-            console.log(e);
-        }
+        console.log(tabs);
+        checkDomain(tabs.url, activeInfo.tabId)
     })
+})
+
+
+function checkDomain(website: any, tabId: number) {
+    try {
+        const url: URL = new URL(website);
+        const domain: string = url.hostname;
+        chrome.storage.local.get(['lastDomain'], (result) => {
+            if (result.lastDomain.domain !== domain) {
+                window.console.log('lastDOmain', result.lastDomain);
+                window.console.log(new Date);
+                chrome.storage.local.get(['blacklist','lastDomain'], (result) => {
+                    const startTime: string = (new Date).toJSON();
+                    if (result.blacklist.includes(domain)) {
+                        window.console.log('Domain on blacklist');
+                        chrome.tabs.sendMessage(tabId, {domain: domain});
+                        chrome.storage.local.set({lastDomain: {domain: domain, startTime: startTime, blacklisted: true}});
+                    } else {
+                        chrome.storage.local.set({lastDomain: {domain: domain, startTime: startTime, blacklisted: false}});
+                    }
+                    saveIntervall(result.lastDomain.domain, result.lastDomain.blacklisted, result.lastDomain.startTime)
+                })
+            }
+        })
+
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+
+// TODO pass mode after functionallity is implemented
+function saveIntervall(domain: string, blacklisted: boolean, startTime: string) {
+    let newIntervall: TimeIntervall = new TimeIntervall(domain,blacklisted,'implement later',startTime, (new Date).toJSON())
+            chrome.storage.local.get(['archive'], (result) => {
+                let updatedArchive : Array<TimeIntervall> = result.archive;
+                updatedArchive.push(newIntervall);
+                chrome.storage.local.set({archive: updatedArchive});
+                // TODO Send Data to remote Database
+            })
+}
+
+
+// Reacts when user is starting up Chrome
+// send message to content ask what he is up to work/break
+chrome.runtime.onStartup.addListener(function () {
+    //TODO Implement Work/Break Screen
 })
 
 
@@ -53,10 +66,8 @@ chrome.tabs.onActivated.addListener(function (activeInfo) {
 chrome.browserAction.onClicked.addListener(changeMode);
 
 
-// Change Mode when extension Icon is clicked. "Work" and "Break" mode are avaible
+// Change Mode when extension Icon is clicked. "Work" and "Break" mode are available
 // TODO add functionality for break mode so user doesnt get Interventions
-// TODO still track usage data?
-// TODO activate automatically after set time or when calender is set to learn
 function changeMode() {
     chrome.storage.local.get(['mode'], (result) => {
         let mode: string;
@@ -71,6 +82,33 @@ function changeMode() {
 }
 
 
-// function storeTimeIntervall(domain: String, startTime: Date, endTime: Date, goal?: string) {
-//
-// }
+
+
+
+// <------------------------------------------CLASSES------------------------------------------>
+// Duplicate Code cause noone wants you to use modules i guess.
+// @ts-ignore
+// add id field, so goals can be updated later.
+class TimeIntervall {
+    domain: string;
+    goal?: string;
+    blacklisted: boolean;
+    mode: string;
+    startTime: string;
+    endTime: string;
+
+    constructor(domain: string,
+                blacklisted: boolean,
+                mode: string,
+                startTime: string,
+                endTime: string,
+                goal?: string
+    ) {
+        this.domain = domain;
+        this.goal = goal;
+        this.blacklisted = blacklisted;
+        this.mode = mode;
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
+}
