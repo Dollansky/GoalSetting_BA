@@ -2,7 +2,7 @@
 chrome.runtime.onInstalled.addListener(() => {
     const blacklist = ["www.reddit.com", "www.instagram.com", "www.facebook.com", "www.youtube.com", "www.netflix.com", "9gag.com"];
     const archive = [];
-    chrome.storage.local.set({ lastDomain: { domain: "" } });
+    chrome.storage.local.set({ lastDomain: { domain: "Installation Time" } });
     chrome.storage.local.set({ blacklist: blacklist });
     chrome.storage.local.set({ mode: 'work' });
     chrome.storage.local.set({ archive: archive });

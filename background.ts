@@ -19,21 +19,17 @@ function checkDomain(website: any, tabId: number) {
     try {
         const url: URL = new URL(website);
         const domain: string = url.hostname;
-        chrome.storage.local.get(['lastDomain'], (result) => {
+        chrome.storage.local.get(['lastDomain','blacklist','mode'], (result) => {
             if (result.lastDomain.domain !== domain) {
-                window.console.log('lastDOmain', result.lastDomain);
-                window.console.log(new Date);
-                chrome.storage.local.get(['blacklist','lastDomain'], (result) => {
                     const startTime: string = (new Date).toJSON();
                     if (result.blacklist.includes(domain)) {
-                        window.console.log('Domain on blacklist');
                         chrome.tabs.sendMessage(tabId, {domain: domain});
                         chrome.storage.local.set({lastDomain: {domain: domain, startTime: startTime, blacklisted: true}});
                     } else {
                         chrome.storage.local.set({lastDomain: {domain: domain, startTime: startTime, blacklisted: false}});
                     }
-                    saveIntervall(result.lastDomain.domain, result.lastDomain.blacklisted, result.lastDomain.startTime)
-                })
+                    saveIntervall(result.lastDomain.domain, result.lastDomain.blacklisted, result.lastDomain.startTime, result.mode)
+
             }
         })
 
@@ -44,12 +40,13 @@ function checkDomain(website: any, tabId: number) {
 
 
 // TODO pass mode after functionallity is implemented
-function saveIntervall(domain: string, blacklisted: boolean, startTime: string) {
-    let newIntervall: TimeIntervall = new TimeIntervall(domain,blacklisted,'implement later',startTime, (new Date).toJSON())
+function saveIntervall(domain: string, blacklisted: boolean, startTime: string, mode: string) {
+    let newIntervall: TimeIntervall = new TimeIntervall(domain,blacklisted,mode ,startTime, (new Date).toJSON())
             chrome.storage.local.get(['archive'], (result) => {
                 let updatedArchive : Array<TimeIntervall> = result.archive;
                 updatedArchive.push(newIntervall);
                 chrome.storage.local.set({archive: updatedArchive});
+                window.console.log(result.archive);
                 // TODO Send Data to remote Database
             })
 }
